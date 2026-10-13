@@ -1,2 +1,2 @@
 # Development-only files excluded from the published registry archive.
-docs/
+docs_devel/

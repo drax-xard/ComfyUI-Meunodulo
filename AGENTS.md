@@ -6,12 +6,13 @@ ComfyUI custom-node pack. Pure-Python nodes + canvas-drawing JS extensions. No d
 - `__init__.py` re-exports `NODE_CLASS_MAPPINGS` / `NODE_DISPLAY_NAME_MAPPINGS` from `src/nodes.py` and sets `WEB_DIRECTORY = "./web"`.
 - `src/nodes.py` is the single Python source of node definitions.
 - `web/js/*.js` are ES modules auto-loaded by ComfyUI; relative import to the core is `../../../scripts/app.js` (3 levels, because the pack is served under `/extensions/<name>/` and the file sits in `web/js/`).
-- `web/docs/` is per-node help; `docs/` is reference material on ComfyUI node authoring (not shipped behavior).
+- `web/docs/` is per-node help shown in the in-app help panel; `docs/` is the repo-facing copy of the same per-node docs; `docs_devel/` is reference material on ComfyUI node authoring (not shipped behavior).
 
 ## Must-keep-in-sync (duplicated logic)
 - Resolution math is duplicated: `calculate_resolution` / `ASPECT_*` / `STANDARD_RESOLUTIONS` in `src/nodes.py` **and** `resolve` / `RATIOS` / `ASPECTS` / `STANDARD` in `web/js/resolution.js`. Editing one requires editing the other. Python is the source of truth.
 - Label color palette: `DisplayLabel.FONT_COLORS` in `src/nodes.py` mirrors `PALETTE` in `web/js/label.js` (keys must match; hex values may differ).
 - `DisplayLabel.FONT_COLORS` and other tables are also referenced by comments marked "Keep in sync".
+- Per-node docs are duplicated: `web/docs/NodeName.md` (required for the in-app help panel) and `docs/NodeName.md` (repo-facing). Editing one requires editing the other.
 
 ## Conventions that differ from defaults
 - Custom mode sizes round **up** (ceil) to the next multiple, not to nearest. Standard mode returns exact curated resolutions even if not a multiple of 32.

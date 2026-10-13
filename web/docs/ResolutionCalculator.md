@@ -1,5 +1,7 @@
 # Resolution Calculator
 
+> Node class: `ResolutionCalculator` · Display name: **Resolution Calculator**
+
 Turns a target megapixel count and an aspect ratio into concrete video
 dimensions. Useful for keeping generated video or image sizes aligned with
 standard resolutions (SD, HD, 4K, vertical phone, cinematic, etc.).

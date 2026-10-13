@@ -1,5 +1,7 @@
 # Display Text Label
 
+> Node class: `DisplayLabel` · Display name: **Display Text Label**
+
 Renders up to five lines of text as a styled label directly inside the node on the
 workflow canvas. Useful for annotating a graph with titles, notes, or section
 headers without leaving the canvas.

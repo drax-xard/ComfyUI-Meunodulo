@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Split documentation: `docs/` now holds repo-facing per-node docs mirrored in
+  `web/docs/` (in-app help), and the development reference material moved to
+  `docs_devel/`.
+
 ## [0.1.0] - 2026-10-13
 
 ### Added

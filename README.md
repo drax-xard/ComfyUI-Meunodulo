@@ -32,11 +32,13 @@ ComfyUI-Meunodulo/
 ├── __init__.py            # registers node mappings and WEB_DIRECTORY
 ├── src/nodes.py           # Python node definitions
 ├── web/js/                # client-side JavaScript extensions
-├── web/docs/              # per-node markdown documentation
-├── docs/                  # reference notes on custom node development
+├── web/docs/              # per-node markdown help (shown in the in-app help panel)
+├── docs/                  # per-node markdown docs (repo-facing copy)
+├── docs_devel/            # reference notes on custom node development
 └── pyproject.toml         # packaging / registry metadata
 ```
 
-The `docs` folder contains several text files with basic information on custom
-node development. More information can be found at:
-https://docs.comfy.org/custom-nodes/intro
+The `docs` folder holds one documentation file per node, mirrored in `web/docs`
+for the in-app help panel. The `docs_devel` folder contains reference text files
+with basic information on custom node development. More information can be found
+at: https://docs.comfy.org/custom-nodes/intro
