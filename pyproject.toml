@@ -1,15 +1,33 @@
+[build-system]
+requires = ["setuptools>=70.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "comfyui-meunodulo"
+name = "meunodulo"
 version = "0.1.0"
 description = "ComfyUI-Meunodulo: a collection of custom nodes for ComfyUI, starting with a customizable text Label node."
+authors = [
+  { name = "Drax", email = "vicodyn@gmail.com" }
+]
 readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
+classifiers = [
+  "Operating System :: OS Independent"
+]
 dependencies = []
 
 [project.urls]
 Repository = "https://github.com/meunodulo/ComfyUI-Meunodulo"
+BugTracker = "https://github.com/meunodulo/ComfyUI-Meunodulo/issues"
+Documentation = "https://github.com/meunodulo/ComfyUI-Meunodulo/wiki"
 
 [tool.comfy]
 PublisherId = "meunodulo"
 DisplayName = "ComfyUI-Meunodulo"
 Icon = ""
+Tags = []
+Repository = "https://github.com/meunodulo/ComfyUI-Meunodulo"
+
+[tool.setuptools.package-data]
+"*" = ["*.*"]
