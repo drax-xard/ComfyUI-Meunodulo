@@ -1,13 +1,21 @@
-import { app } from "../../scripts/app.js";
+import { app } from "../../../scripts/app.js";
+import {
+	getWidget,
+	valueOf,
+	widgetSectionHeight,
+	normalizeHex,
+	roundRect,
+	measureCtx,
+} from "./util.js";
 
-const NODE_CLASS = "MeunoduloLabel";
+const NODE_CLASS = "DisplayLabel";
 
 const PAD = 8;
 const MIN_W = 180;
 const MAX_W = 512;
 const MIN_H = 60;
 
-// Keep in sync with MeunoduloLabel.FONT_COLORS in src/nodes.py
+// Keep in sync with DisplayLabel.FONT_COLORS in src/nodes.py
 const PALETTE = {
 	white: "#FFFFFF",
 	black: "#000000",
@@ -20,31 +28,6 @@ const PALETTE = {
 	gray: "#9E9E9E",
 };
 
-const offCtx = document.createElement("canvas").getContext("2d");
-
-function getWidget(node, name) {
-	return node.widgets?.find((w) => w.name === name);
-}
-
-function valueOf(node, name, fallback) {
-	const w = getWidget(node, name);
-	return w === undefined ? fallback : w.value;
-}
-
-function isHidden(widget) {
-	return widget.hidden || widget.type === "hidden";
-}
-
-function rowHeight() {
-	return ((globalThis.LiteGraph?.NODE_WIDGET_HEIGHT || 20) + 4);
-}
-
-function widgetSectionHeight(node) {
-	let count = 0;
-	for (const w of node.widgets ?? []) if (!isHidden(w)) count++;
-	return count * rowHeight() + 8;
-}
-
 function fontString(node) {
 	const size = Number(valueOf(node, "font_size", 24)) || 24;
 	const bold = valueOf(node, "bold", false) ? "bold " : "";
@@ -56,16 +39,6 @@ function fontSizeOf(node) {
 	return Number(valueOf(node, "font_size", 24)) || 24;
 }
 
-function normalizeHex(value) {
-	if (value === undefined || value === null) return null;
-	let s = String(value).trim().replace(/^#/, "");
-	if (/^[0-9a-fA-F]{3}$/.test(s)) {
-		s = s.split("").map((c) => c + c).join("");
-	}
-	if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
-	return "#" + s.toUpperCase();
-}
-
 function resolveColor(preset, customHex) {
 	if (preset === "none") return null;
 	if (preset === "custom") return normalizeHex(customHex);
@@ -73,7 +46,7 @@ function resolveColor(preset, customHex) {
 }
 
 function wrapText(text, font, maxWidth) {
-	offCtx.font = font;
+	measureCtx.font = font;
 	const out = [];
 	for (const raw of String(text).split("\n")) {
 		if (raw.trim() === "") {
@@ -83,7 +56,7 @@ function wrapText(text, font, maxWidth) {
 		let line = "";
 		for (const token of raw.split(/(\s+)/)) {
 			const test = line + token;
-			if (line && offCtx.measureText(test).width > maxWidth) {
+			if (line && measureCtx.measureText(test).width > maxWidth) {
 				out.push(line.replace(/\s+$/, ""));
 				line = token.replace(/^\s+/, "");
 			} else {
@@ -112,9 +85,9 @@ function computeAutoSize(node) {
 	const lines = text ? wrapText(text, font, maxContent) : [""];
 	const lineHeight = Math.round(fontSizeOf(node) * 1.25);
 
-	offCtx.font = font;
+	measureCtx.font = font;
 	let contentW = 0;
-	for (const ln of lines) contentW = Math.max(contentW, offCtx.measureText(ln).width);
+	for (const ln of lines) contentW = Math.max(contentW, measureCtx.measureText(ln).width);
 
 	const width = Math.min(MAX_W, Math.max(MIN_W, Math.ceil(contentW) + PAD * 2));
 	const height = Math.max(MIN_H, Math.ceil(widgetSectionHeight(node) + lines.length * lineHeight + PAD));
@@ -162,16 +135,6 @@ function wrapCallbacks(node) {
 			return r;
 		};
 	}
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-	ctx.beginPath();
-	ctx.moveTo(x + r, y);
-	ctx.arcTo(x + w, y, x + w, y + h, r);
-	ctx.arcTo(x + w, y + h, x, y + h, r);
-	ctx.arcTo(x, y + h, x, y, r);
-	ctx.arcTo(x, y, x + w, y, r);
-	ctx.closePath();
 }
 
 app.registerExtension({

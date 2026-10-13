@@ -8,7 +8,8 @@ under the collective name of **ComfyUI-Meunodulo**.
 
 | Node | Description |
 | --- | --- |
-| **Label (Meunodulo)** | Renders up to five lines of text as a styled, auto-sizing label inside the node on the workflow canvas. |
+| **Display Text Label** | Renders up to five lines of text as a styled, auto-sizing label inside the node on the workflow canvas. |
+| **Resolution Calculator** | Converts a target megapixel count and aspect ratio into standard video dimensions (HD, 4K, vertical, cinematic, ...), with width and height outputs. |
 
 ## Installation
 

@@ -1,4 +1,4 @@
-# Label (Meunodulo)
+# Display Text Label
 
 Renders up to five lines of text as a styled label directly inside the node on the
 workflow canvas. Useful for annotating a graph with titles, notes, or section
@@ -31,7 +31,7 @@ headers without leaving the canvas.
 
 ## Usage
 
-1. Add **Meunodulo → Label (Meunodulo)** to your graph.
+1. Add **Meunodulo → Display Text Label** to your graph.
 2. Type into one or more of the text fields, or connect string outputs to them.
 3. Adjust font size, colors, alignment, and weight to taste.
 4. When you are happy with the look, set *show_text_widgets* to `false` to hide
