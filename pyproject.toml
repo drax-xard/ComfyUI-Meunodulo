@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-meunodulo"
+version = "0.1.0"
+description = "ComfyUI-Meunodulo: a collection of custom nodes for ComfyUI, starting with a customizable text Label node."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/meunodulo/ComfyUI-Meunodulo"
+
+[tool.comfy]
+PublisherId = "meunodulo"
+DisplayName = "ComfyUI-Meunodulo"
+Icon = ""
