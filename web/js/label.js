@@ -105,12 +105,21 @@ function setTextWidgetsVisible(node, visible) {
 		const w = getWidget(node, "text_" + i);
 		if (!w) continue;
 		if (visible) {
-			w.hidden = false;
-			w.type = w.__meunoduloOrigType ?? "text";
-			if (w.__meunoduloOrigCompute) w.computeSize = w.__meunoduloOrigCompute;
+			const saved = w.__meunoduloOrig;
+			w.hidden = saved ? saved.hidden ?? false : false;
+			w.type = saved ? saved.type : "text";
+			if (saved && saved.computeSize) {
+				w.computeSize = saved.computeSize;
+			} else {
+				delete w.computeSize;
+			}
+			delete w.__meunoduloOrig;
 		} else {
-			w.__meunoduloOrigType = w.__meunoduloOrigType ?? w.type;
-			w.__meunoduloOrigCompute = w.__meunoduloOrigCompute ?? w.computeSize;
+			w.__meunoduloOrig = w.__meunoduloOrig ?? {
+				type: w.type,
+				computeSize: w.computeSize,
+				hidden: w.hidden,
+			};
 			w.type = "hidden";
 			w.hidden = true;
 			w.computeSize = () => [0, -4];

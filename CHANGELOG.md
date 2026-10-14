@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-14
+
+### Fixed
+
+- `DisplayLabel`: toggling the text widgets back on after hiding them no longer
+  leaves only "text 5" visible — the original widget state is now fully restored.
+- `ResolutionCalculator`: the computed resolution text now renders below the
+  node's widgets instead of behind them, by deriving the widget area height from
+  the framework's own layout computation.
+
 ### Changed
 
 - Split documentation: `docs/` now holds repo-facing per-node docs mirrored in
@@ -31,5 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and repository/URL fields.
 - `LICENSE` (GNU GPL v3), `MANIFEST.in`, and `.comfyignore`.
 
-[Unreleased]: https://github.com/meunodulo/ComfyUI-Meunodulo/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/meunodulo/ComfyUI-Meunodulo/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/meunodulo/ComfyUI-Meunodulo/releases/tag/v0.1.1
 [0.1.0]: https://github.com/meunodulo/ComfyUI-Meunodulo/releases/tag/v0.1.0

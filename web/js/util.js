@@ -20,6 +20,14 @@ export function rowHeight() {
 }
 
 export function widgetSectionHeight(node) {
+	try {
+		const [width, height] = node.computeSize?.() ?? [];
+		if (Number.isFinite(width) && Number.isFinite(height) && height > 0) {
+			return height;
+		}
+	} catch {
+		// fall through to the manual estimate
+	}
 	let count = 0;
 	for (const w of node.widgets ?? []) if (!isHidden(w)) count++;
 	return count * rowHeight() + 8;
