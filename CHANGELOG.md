@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-14
+
+### Changed
+
+- `DisplayLabel`: the five `text_1 … text_5` inputs are now wildcard (`*`)
+  sockets that accept any data type (text, numbers, booleans, ...) instead of
+  editable STRING widgets. Connect any node output to display it. Numbers are
+  formatted readably (whole floats drop the trailing `.0`).
+
+### Removed
+
+- `DisplayLabel`: the `show_text_widgets` toggle is gone, since the text inputs
+  are no longer widgets.
+
 ## [0.1.1] - 2026-10-14
 
 ### Fixed
@@ -41,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and repository/URL fields.
 - `LICENSE` (GNU GPL v3), `MANIFEST.in`, and `.comfyignore`.
 
-[Unreleased]: https://github.com/meunodulo/ComfyUI-Meunodulo/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/meunodulo/ComfyUI-Meunodulo/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/meunodulo/ComfyUI-Meunodulo/releases/tag/v0.2.0
 [0.1.1]: https://github.com/meunodulo/ComfyUI-Meunodulo/releases/tag/v0.1.1
 [0.1.0]: https://github.com/meunodulo/ComfyUI-Meunodulo/releases/tag/v0.1.0

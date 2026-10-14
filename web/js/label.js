@@ -1,6 +1,5 @@
 import { app } from "../../../scripts/app.js";
 import {
-	getWidget,
 	valueOf,
 	widgetSectionHeight,
 	normalizeHex,
@@ -69,12 +68,6 @@ function wrapText(text, font, maxWidth) {
 }
 
 function getDisplayText(node) {
-	const parts = [];
-	for (let i = 1; i <= 5; i++) {
-		const v = valueOf(node, "text_" + i, "");
-		if (v !== undefined && v !== null && String(v).trim()) parts.push(String(v));
-	}
-	if (parts.length) return parts.join("\n");
 	return node.__meunoduloExecutedText || "";
 }
 
@@ -100,35 +93,7 @@ function autosize(node) {
 	node.setSize?.([w, h]);
 }
 
-function setTextWidgetsVisible(node, visible) {
-	for (let i = 1; i <= 5; i++) {
-		const w = getWidget(node, "text_" + i);
-		if (!w) continue;
-		if (visible) {
-			const saved = w.__meunoduloOrig;
-			w.hidden = saved ? saved.hidden ?? false : false;
-			w.type = saved ? saved.type : "text";
-			if (saved && saved.computeSize) {
-				w.computeSize = saved.computeSize;
-			} else {
-				delete w.computeSize;
-			}
-			delete w.__meunoduloOrig;
-		} else {
-			w.__meunoduloOrig = w.__meunoduloOrig ?? {
-				type: w.type,
-				computeSize: w.computeSize,
-				hidden: w.hidden,
-			};
-			w.type = "hidden";
-			w.hidden = true;
-			w.computeSize = () => [0, -4];
-		}
-	}
-}
-
 function refresh(node) {
-	setTextWidgetsVisible(node, !!valueOf(node, "show_text_widgets", true));
 	autosize(node);
 	node.setDirtyCanvas?.(true, true);
 }

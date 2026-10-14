@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "meunodulo"
-version = "0.1.1"
+version = "0.2.0"
 description = "ComfyUI-Meunodulo: a collection of custom nodes for ComfyUI, starting with a customizable text Label node."
 authors = [
   { name = "Drax", email = "vicodyn@gmail.com" }

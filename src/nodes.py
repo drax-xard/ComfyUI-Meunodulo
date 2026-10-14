@@ -1,26 +1,41 @@
 import math
 
 
+def _format_line(value):
+    """Render a single connected value as one label line (or None to skip)."""
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return str(value)
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    if isinstance(value, (list, tuple)):
+        parts = (_format_line(v) for v in value)
+        return "\n".join(p for p in parts if p is not None)
+    return str(value)
+
+
 class DisplayLabel:
-    """A purely visual node that renders up to five text lines as a styled
-    label inside the node body on the ComfyUI canvas.
+    """A purely visual node that renders up to five values as a styled label
+    inside the node body on the ComfyUI canvas.
 
     The label styling and rendering are handled client side (see
-    ``web/js/label.js``). The Python side only defines the widgets used to
-    configure the node and re-emits the combined text through the ``ui``
-    channel so that text received from connected inputs is reflected in the
-    label after the graph is queued.
+    ``web/js/label.js``). The Python side defines the styling widgets and five
+    wildcard inputs, and re-emits the combined text through the ``ui`` channel
+    so the label reflects connected values after the graph is queued.
     """
 
     CATEGORY = "Meunodulo"
 
     DESCRIPTION = (
-        "Renders up to five text lines as a styled label directly on the "
-        "ComfyUI canvas. Purely visual: it has no outputs and does not affect "
-        "the generated image. Use it to annotate or comment parts of a graph."
+        "Renders up to five values as a styled label directly on the ComfyUI "
+        "canvas. Each input accepts any data type (text, number, boolean, ...); "
+        "connect any node output to display it. Purely visual: it has no outputs "
+        "and does not affect the generated image."
     )
 
-    SEARCH_ALIASES = ["text", "note", "comment", "annotation", "caption", "display"]
+    SEARCH_ALIASES = ["text", "note", "comment", "annotation", "caption", "display",
+        "any", "value", "number"]
 
     # Shared with web/js/label.js - keep the preset keys/values in sync.
     FONT_COLORS = ["white", "black", "red", "green", "blue", "yellow", "orange", "purple", "gray"]
@@ -45,20 +60,13 @@ class DisplayLabel:
                     "tooltip": "Render the label text in bold."}),
                 "italic": ("BOOLEAN", {"default": False,
                     "tooltip": "Render the label text in italic."}),
-                "show_text_widgets": ("BOOLEAN", {"default": True,
-                    "tooltip": "Show the five text input widgets on the node. Hide them for a cleaner look once the text is set."}),
             },
             "optional": {
-                "text_1": ("STRING", {"default": "", "multiline": False,
-                    "tooltip": "First line of the label. Accepts a connected STRING input."}),
-                "text_2": ("STRING", {"default": "", "multiline": False,
-                    "tooltip": "Second line of the label. Accepts a connected STRING input."}),
-                "text_3": ("STRING", {"default": "", "multiline": False,
-                    "tooltip": "Third line of the label. Accepts a connected STRING input."}),
-                "text_4": ("STRING", {"default": "", "multiline": False,
-                    "tooltip": "Fourth line of the label. Accepts a connected STRING input."}),
-                "text_5": ("STRING", {"default": "", "multiline": False,
-                    "tooltip": "Fifth line of the label. Accepts a connected STRING input."}),
+                "text_1": ("*", {"tooltip": "First line. Connect any output to display its value."}),
+                "text_2": ("*", {"tooltip": "Second line. Connect any output to display its value."}),
+                "text_3": ("*", {"tooltip": "Third line. Connect any output to display its value."}),
+                "text_4": ("*", {"tooltip": "Fourth line. Connect any output to display its value."}),
+                "text_5": ("*", {"tooltip": "Fifth line. Connect any output to display its value."}),
             },
         }
 
@@ -66,16 +74,17 @@ class DisplayLabel:
     FUNCTION = "run"
     OUTPUT_NODE = True
 
-    def run(self, text_1="", text_2="", text_3="", text_4="", text_5="", **kwargs):
+    @classmethod
+    def VALIDATE_INPUTS(cls, input_types):
+        # The five inputs are wildcards ("*"); accept any connected type.
+        return True
+
+    def run(self, text_1=None, text_2=None, text_3=None, text_4=None, text_5=None, **kwargs):
         lines = []
         for value in (text_1, text_2, text_3, text_4, text_5):
-            if value is None:
-                continue
-            if isinstance(value, (list, tuple)):
-                value = "\n".join(str(v) for v in value)
-            text = str(value)
-            if text.strip():
-                lines.append(text)
+            line = _format_line(value)
+            if line is not None and line.strip():
+                lines.append(line)
         combined = "\n".join(lines)
         return {"ui": {"meunodulo_text": [combined]}}
 
