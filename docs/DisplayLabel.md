@@ -17,10 +17,12 @@ headers, and for inspecting any value flowing through the graph.
 - **font_size**: Label font size in pixels (6 – 256).
 - **font_color**: Preset color name (`white`, `black`, `red`, `green`, `blue`,
   `yellow`, `orange`, `purple`, `gray`) or `custom`.
-- **font_custom_color**: Hex color used when *font_color* is `custom`.
+- **font_custom_color**: Hex color used when *font_color* is `custom`
+  (3- or 6-digit hex, e.g. `#FFF` / `#FF0000`; anything else falls back to white).
 - **bg_color**: Background color for the text block — a preset name, `none`, or
   `custom`.
-- **bg_custom_color**: Hex color used when *bg_color* is `custom`.
+- **bg_custom_color**: Hex color used when *bg_color* is `custom`
+  (3- or 6-digit hex; anything else falls back to black).
 - **text_align**: `left`, `center`, or `right`.
 - **bold** / **italic**: Toggle font weight and style.
 
@@ -30,7 +32,10 @@ headers, and for inspecting any value flowing through the graph.
 - Connected values are resolved at queue time and reflected in the label after
   the workflow runs.
 - Numbers are shown as-is (whole floats lose their trailing `.0`); booleans as
-  `True`/`False`; list values are shown one element per line.
+  `True`/`False`; non-finite floats as `NaN`/`Infinity`/`-Infinity`; bytes are
+  decoded as UTF-8; list values are shown one element per line (capped at 50
+  lines total — longer lists end with a `… (+N more)` line). Empty values are
+  skipped.
 - Because the label is a visual helper, it does not affect the generated output.
 
 ## Usage

@@ -1,18 +1,31 @@
 import math
 
 
+# Cap for list-expanded label lines (one wildcard input can hold a long list).
+MAX_LABEL_LINES = 50
+
+
 def _format_line(value):
     """Render a single connected value as one label line (or None to skip)."""
     if value is None:
         return None
     if isinstance(value, bool):
         return str(value)
-    if isinstance(value, float) and value.is_integer():
-        return str(int(value))
+    if isinstance(value, (bytes, bytearray)):
+        return bytes(value).decode("utf-8", "replace")
+    if isinstance(value, float):
+        if math.isnan(value):
+            return "NaN"
+        if math.isinf(value):
+            return "Infinity" if value > 0 else "-Infinity"
+        if value.is_integer():
+            return str(int(value))
+        return str(value)
     if isinstance(value, (list, tuple)):
         parts = (_format_line(v) for v in value)
-        return "\n".join(p for p in parts if p is not None)
-    return str(value)
+        return "\n".join(p for p in parts if p)
+    text = str(value)
+    return text if text.strip() else None
 
 
 class DisplayLabel:
@@ -86,6 +99,11 @@ class DisplayLabel:
             if line is not None and line.strip():
                 lines.append(line)
         combined = "\n".join(lines)
+        split = combined.split("\n") if combined else []
+        if len(split) > MAX_LABEL_LINES:
+            hidden = len(split) - MAX_LABEL_LINES
+            split = split[:MAX_LABEL_LINES] + [f"… (+{hidden} more)"]
+            combined = "\n".join(split)
         return {"ui": {"meunodulo_text": [combined]}}
 
 
@@ -142,16 +160,36 @@ STANDARD_RESOLUTIONS = {
 }
 
 
+def _coerce_float(value, fallback):
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return fallback
+    return result if math.isfinite(result) else fallback
+
+
+def _coerce_int(value, fallback):
+    try:
+        result = int(float(value))
+    except (TypeError, ValueError):
+        return fallback
+    return result if math.isfinite(result) else fallback
+
+
 def calculate_resolution(aspect, mode, megapixels, multiple):
     """Return (width, height) for the selected aspect and target megapixels.
 
     In "Standard" mode the closest curated video resolution is returned. In
     "Custom" mode the dimensions are computed from the aspect ratio and rounded
     up to the next multiple of ``multiple``.
+
+    Out-of-range inputs are clamped, never raised: negative or non-numeric
+    megapixels behave as 0, and a non-numeric multiple falls back to 32
+    (minimum step 1).
     """
     base, orientation = ASPECT_ORIENTATIONS.get(aspect, ("16:9", "landscape"))
     ratio = ASPECT_RATIOS.get(base, 16 / 9)
-    target_pixels = float(megapixels) * 1_000_000.0
+    target_pixels = max(0.0, _coerce_float(megapixels, 1.0) * 1_000_000.0)
 
     if str(mode).lower().startswith("standard"):
         table = STANDARD_RESOLUTIONS.get(base, [(1024, 1024)])
@@ -160,7 +198,7 @@ def calculate_resolution(aspect, mode, megapixels, multiple):
         return min(table, key=lambda wh: (abs(wh[0] * wh[1] - target_pixels), -(wh[0] * wh[1])))
 
     effective = (1.0 / ratio) if orientation == "portrait" else ratio
-    step = max(1, int(multiple))
+    step = max(1, _coerce_int(multiple, 32))
     width = math.sqrt(target_pixels * effective)
     height = math.sqrt(target_pixels / effective)
     width = max(step, int(math.ceil(width / step - 1e-9)) * step)
@@ -207,7 +245,7 @@ class ResolutionCalculator:
     OUTPUT_TOOLTIPS = ("Computed width in pixels.", "Computed height in pixels.")
     FUNCTION = "run"
 
-    def run(self, aspect, mode, megapixels, multiple):
+    def run(self, aspect, mode, megapixels, multiple, **kwargs):
         width, height = calculate_resolution(aspect, mode, megapixels, multiple)
         return {"ui": {"meunodulo_resolution": [f"{width}x{height}"]}, "result": (width, height)}
 

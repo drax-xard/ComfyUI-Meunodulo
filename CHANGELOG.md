@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `ResolutionCalculator`: negative, missing, or non-numeric `megapixels` no
+  longer crashes queue execution (`ValueError: math domain error`) or shows
+  `NaN` on the canvas — out-of-range values now behave as 0; a non-numeric
+  `multiple` falls back to 32 (Python and JS agree).
+- `DisplayLabel`: empty strings inside connected lists no longer produce blank
+  lines; `bytes` values decode as UTF-8 instead of showing `b'...'`; `NaN` /
+  `inf` render as `NaN` / `Infinity`.
+- `DisplayLabel` canvas: words longer than the node width now hard-break
+  instead of overflowing, and manual resizes re-fit the node height without
+  fighting the chosen width.
+
+### Changed
+
+- `DisplayLabel`: list inputs expanding past 50 lines are now truncated with a
+  `… (+N more)` line so one long list can't blow up the canvas.
+- Label text measurement is cached (single-entry) so idle canvas frames no
+  longer re-measure text; `util.js` uses tab indentation and lazily creates its
+  measure canvas; `roundRect` uses the native API when available.
+- Packaging: `include-package-data = true` so `web/` ships in wheels, not just
+  sdist/git installs.
+
 ## [0.2.0] - 2026-10-14
 
 ### Changed

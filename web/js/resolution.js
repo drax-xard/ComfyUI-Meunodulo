@@ -1,5 +1,5 @@
 import { app } from "../../../scripts/app.js";
-import { valueOf, widgetSectionHeight, measureCtx } from "./util.js";
+import { valueOf, widgetSectionHeight, measureContext } from "./util.js";
 
 const NODE_CLASS = "ResolutionCalculator";
 
@@ -62,8 +62,11 @@ const STANDARD = {
 function resolve(node) {
 	const aspect = valueOf(node, "aspect", "16:9 (Landscape)");
 	const mode = String(valueOf(node, "mode", "Standard (video sizes)")).toLowerCase();
-	const megapixels = Number(valueOf(node, "megapixels", 1)) || 0;
-	const multiple = Math.max(1, Math.round(Number(valueOf(node, "multiple", 32)) || 32));
+	let megapixels = Number(valueOf(node, "megapixels", 1));
+	if (!Number.isFinite(megapixels) || megapixels < 0) megapixels = 0;
+	let multiple = Math.round(Number(valueOf(node, "multiple", 32)));
+	if (!Number.isFinite(multiple)) multiple = 32;
+	multiple = Math.max(1, multiple);
 
 	const [base, orientation] = ASPECTS[aspect] ?? ["16:9", "landscape"];
 	const ratio = RATIOS[base] ?? 1;
@@ -108,10 +111,11 @@ function meta(node) {
 
 function computeAutoSize(node) {
 	const { text, sub } = meta(node);
-	measureCtx.font = `bold ${LINE1}px sans-serif`;
-	const w1 = measureCtx.measureText(text).width;
-	measureCtx.font = `${LINE2}px sans-serif`;
-	const w2 = measureCtx.measureText(sub).width;
+	const ctx = measureContext();
+	ctx.font = `bold ${LINE1}px sans-serif`;
+	const w1 = ctx.measureText(text).width;
+	ctx.font = `${LINE2}px sans-serif`;
+	const w2 = ctx.measureText(sub).width;
 
 	const width = Math.min(MAX_W, Math.max(MIN_W, Math.ceil(Math.max(w1, w2)) + PAD * 2));
 	const height = Math.max(MIN_H, Math.ceil(widgetSectionHeight(node) + BLOCK_H + PAD));
@@ -126,9 +130,9 @@ function redraw(node) {
 }
 
 function wrapCallbacks(node) {
-	if (node.__meunoduloWrapped) return;
-	node.__meunoduloWrapped = true;
 	for (const w of node.widgets ?? []) {
+		if (w.__meunoduloWrapped) continue;
+		w.__meunoduloWrapped = true;
 		const original = w.callback;
 		w.callback = function (...args) {
 			const r = original?.apply(this, args);

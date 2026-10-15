@@ -1,6 +1,11 @@
 // Shared helpers for Meunodulo client extensions.
 
-export const measureCtx = document.createElement("canvas").getContext("2d");
+let _measure = null;
+
+export function measureContext() {
+	if (!_measure) _measure = document.createElement("canvas").getContext("2d");
+	return _measure;
+}
 
 export function getWidget(node, name) {
 	return node.widgets?.find((w) => w.name === name);
@@ -21,8 +26,9 @@ export function rowHeight() {
 
 export function widgetSectionHeight(node) {
 	try {
-		const [width, height] = node.computeSize?.() ?? [];
-		if (Number.isFinite(width) && Number.isFinite(height) && height > 0) {
+		const size = node.computeSize?.([]);
+		const height = Array.isArray(size) ? size[1] : undefined;
+		if (Number.isFinite(height) && height > 0) {
 			return height;
 		}
 	} catch {
@@ -44,6 +50,11 @@ export function normalizeHex(value) {
 }
 
 export function roundRect(ctx, x, y, w, h, r) {
+	if (typeof ctx.roundRect === "function") {
+		ctx.beginPath();
+		ctx.roundRect(x, y, w, h, r);
+		return;
+	}
 	ctx.beginPath();
 	ctx.moveTo(x + r, y);
 	ctx.arcTo(x + w, y, x + w, y + h, r);

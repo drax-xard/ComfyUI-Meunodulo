@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "meunodulo"
 version = "0.2.0"
-description = "ComfyUI-Meunodulo: a collection of custom nodes for ComfyUI, starting with a customizable text Label node."
+description = "ComfyUI-Meunodulo: a collection of custom nodes for ComfyUI (styled text label, resolution calculator)."
 authors = [
   { name = "Drax", email = "vicodyn@gmail.com" }
 ]
@@ -28,6 +28,9 @@ DisplayName = "ComfyUI-Meunodulo"
 Icon = ""
 Tags = []
 Repository = "https://github.com/meunodulo/ComfyUI-Meunodulo"
+
+[tool.setuptools]
+include-package-data = true
 
 [tool.setuptools.package-data]
 "*" = ["*.*"]

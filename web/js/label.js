@@ -4,7 +4,7 @@ import {
 	widgetSectionHeight,
 	normalizeHex,
 	roundRect,
-	measureCtx,
+	measureContext,
 } from "./util.js";
 
 const NODE_CLASS = "DisplayLabel";
@@ -44,8 +44,27 @@ function resolveColor(preset, customHex) {
 	return PALETTE[preset] ?? null;
 }
 
+function chunkWord(word, maxWidth) {
+	const ctx = measureContext();
+	if (ctx.measureText(word).width <= maxWidth) return [word];
+	const chunks = [];
+	let cur = "";
+	for (const ch of word) {
+		if (cur && ctx.measureText(cur + ch).width > maxWidth) {
+			chunks.push(cur);
+			cur = ch;
+		} else {
+			cur += ch;
+		}
+	}
+	if (cur) chunks.push(cur);
+	return chunks.length ? chunks : [word];
+}
+
 function wrapText(text, font, maxWidth) {
-	measureCtx.font = font;
+	const ctx = measureContext();
+	ctx.font = font;
+	const width = Math.max(1, maxWidth);
 	const out = [];
 	for (const raw of String(text).split("\n")) {
 		if (raw.trim() === "") {
@@ -53,18 +72,44 @@ function wrapText(text, font, maxWidth) {
 			continue;
 		}
 		let line = "";
+		const pushLine = () => {
+			out.push(line.replace(/\s+$/, ""));
+			line = "";
+		};
 		for (const token of raw.split(/(\s+)/)) {
-			const test = line + token;
-			if (line && measureCtx.measureText(test).width > maxWidth) {
-				out.push(line.replace(/\s+$/, ""));
-				line = token.replace(/^\s+/, "");
-			} else {
-				line = test;
+			if (token === "") continue;
+			if (/^\s+$/.test(token)) {
+				if (line && ctx.measureText(line + token).width > width) pushLine();
+				else line += token;
+				continue;
+			}
+			for (const part of chunkWord(token, width)) {
+				if (line && ctx.measureText(line + part).width > width) pushLine();
+				line += part;
 			}
 		}
-		out.push(line.replace(/\s+$/, ""));
+		pushLine();
 	}
 	return out;
+}
+
+// Single-entry cache: onDrawForeground runs every canvas frame, so avoid
+// re-measuring unchanged text. computeAutoSize (rare) may briefly evict the
+// entry when its width differs; steady-state draws then hit again.
+const wrapCache = { text: null, font: null, maxWidth: 0, lines: null };
+
+function cachedWrap(text, font, maxWidth) {
+	const key = String(text);
+	const w = Math.max(1, Math.floor(maxWidth));
+	if (wrapCache.lines && wrapCache.text === key && wrapCache.font === font && wrapCache.maxWidth === w) {
+		return wrapCache.lines;
+	}
+	const lines = wrapText(key, font, w);
+	wrapCache.text = key;
+	wrapCache.font = font;
+	wrapCache.maxWidth = w;
+	wrapCache.lines = lines;
+	return lines;
 }
 
 function getDisplayText(node) {
@@ -75,16 +120,31 @@ function computeAutoSize(node) {
 	const text = getDisplayText(node);
 	const font = fontString(node);
 	const maxContent = MAX_W - PAD * 2;
-	const lines = text ? wrapText(text, font, maxContent) : [""];
+	const lines = text ? cachedWrap(text, font, maxContent) : [""];
 	const lineHeight = Math.round(fontSizeOf(node) * 1.25);
 
-	measureCtx.font = font;
+	const ctx = measureContext();
+	ctx.font = font;
 	let contentW = 0;
-	for (const ln of lines) contentW = Math.max(contentW, measureCtx.measureText(ln).width);
+	for (const ln of lines) contentW = Math.max(contentW, ctx.measureText(ln).width);
 
 	const width = Math.min(MAX_W, Math.max(MIN_W, Math.ceil(contentW) + PAD * 2));
 	const height = Math.max(MIN_H, Math.ceil(widgetSectionHeight(node) + lines.length * lineHeight + PAD));
 	return [width, height];
+}
+
+function lineHeightOf(node) {
+	return Math.round(fontSizeOf(node) * 1.25);
+}
+
+function fitHeight(node) {
+	if (node.flags?.collapsed) return;
+	const text = getDisplayText(node);
+	const font = fontString(node);
+	const lines = text ? cachedWrap(text, font, node.size[0] - PAD * 2) : [""];
+	const height = Math.max(MIN_H, Math.ceil(widgetSectionHeight(node) + lines.length * lineHeightOf(node) + PAD));
+	if (Math.abs(height - node.size[1]) > 0.5) node.setSize?.([node.size[0], height]);
+	node.setDirtyCanvas?.(true, true);
 }
 
 function autosize(node) {
@@ -99,9 +159,9 @@ function refresh(node) {
 }
 
 function wrapCallbacks(node) {
-	if (node.__meunoduloWrapped) return;
-	node.__meunoduloWrapped = true;
 	for (const w of node.widgets ?? []) {
+		if (w.__meunoduloWrapped) continue;
+		w.__meunoduloWrapped = true;
 		const original = w.callback;
 		w.callback = function (...args) {
 			const r = original?.apply(this, args);
@@ -142,6 +202,14 @@ app.registerExtension({
 			return r;
 		};
 
+		const onResize = nodeType.prototype.onResize;
+		nodeType.prototype.onResize = function () {
+			const r = onResize?.apply(this, arguments);
+			wrapCallbacks(this);
+			fitHeight(this);
+			return r;
+		};
+
 		const onDrawForeground = nodeType.prototype.onDrawForeground;
 		nodeType.prototype.onDrawForeground = function (ctx) {
 			const r = onDrawForeground?.apply(this, arguments);
@@ -159,7 +227,7 @@ app.registerExtension({
 
 			const top = widgetSectionHeight(this);
 			const lineHeight = Math.round(fontSize * 1.25);
-			const lines = wrapText(text, font, this.size[0] - PAD * 2);
+			const lines = cachedWrap(text, font, this.size[0] - PAD * 2);
 
 			ctx.save();
 			ctx.font = font;
